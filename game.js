@@ -13,6 +13,12 @@ window.addEventListener("resize", resizeCanvas);
 // --- LOAD IMAGES ---
 let bgImg = new Image();
 bgImg.src = "background.png";
+bgImg.onerror = () => {
+  console.error("BACKGROUND FAILED TO LOAD", bgImg.src);
+};
+bgImg.onload = () => {
+  console.log("BACKGROUND LOADED OK");
+};
 
 let runnerImg = new Image();
 runnerImg.src = "runner.png";
@@ -26,6 +32,14 @@ collectibleImg2.src = "collectible2.png";
 let collectibleImg3 = new Image();
 collectibleImg3.src = "collectible3.png";
 
+// --- AUDIO ---
+let bgMusic = new Audio("audio/8bit_background.wav");
+bgMusic.loop = true;
+bgMusic.volume = 0.3;
+
+let deathSound = new Audio("audio/death_effect.wav");
+deathSound.volume = 0.5;
+
 // --- ONLY START GAME AFTER IMAGES LOADED ---
 let imagesLoaded = 0;
 function checkLoaded() {
@@ -35,6 +49,13 @@ function checkLoaded() {
 [bgImg, runnerImg, collectibleImg1, collectibleImg2, collectibleImg3].forEach(img => {
   img.onload = checkLoaded;
 });
+
+function startGame() { 
+  if (!gameStarted) {
+    gameStarted = true;
+    bgMusic.play().catch(e => console.log("Autoplay blocked", e));
+  }
+}
 
 // --- GAME VARIABLES ---
 let player = {
@@ -220,6 +241,7 @@ function draw() {
     }
   });
 
+
 // Draw and update particles in your draw() function
 for (let i = particles.length - 1; i >= 0; i--) {
   let p = particles[i];
@@ -271,7 +293,9 @@ function loop() {
 
 // --- RESTART ---
 function restartGame(hitType) {
-  if(hitType === "pipe") alert("Bonk");
+  deathSound.play();  // play the death effect immediately
+
+  if(hitType === "pipe") alert("Great. You killed the cat. Printing new shell...");
   if(hitType === "fall") alert("Great. You killed the cat. Printing new shell...");
 
   setTimeout(() => {
@@ -285,10 +309,6 @@ function restartGame(hitType) {
     nupoints = 0;
   }, 100);
 }
-
-// --- CONTROLS ---
-function startGame() { if(!gameStarted) gameStarted = true; }
-
 document.addEventListener("keydown", startGame);
 canvas.addEventListener("click", startGame);
 
